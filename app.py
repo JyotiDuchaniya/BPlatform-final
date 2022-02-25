@@ -19,19 +19,19 @@ import os
 # Blogs.new_post(blog_title='post 1', blog_description='Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industrys standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.',email= 'ab1@mailinator.com')
 
 
-application = Flask(__name__,template_folder=os.path.join("src","templates"),static_folder=os.path.join("src","static"))
-application.secret_key = 'let'
+app = Flask(__name__, template_folder=os.path.join("src", "templates"), static_folder=os.path.join("src", "static"))
+app.secret_key = 'let'
 
 
-@application.before_first_request
+@app.before_first_request
 def database_initialize():
     Database.initialize()
     if 'email' not in session:
         session['email']= None
 
 
-@application.route('/')
-@application.route('/welcome')
+@app.route('/')
+@app.route('/welcome')
 def welcome():
     email=None
     if 'email' in session:
@@ -41,12 +41,12 @@ def welcome():
     return render_template('Welcome.html', email=email, title='Welcome')
 
 
-@application.route('/login')
+@app.route('/login')
 def login():
     return render_template('Login.html')
 
 
-@application.route('/login', methods=['POST'])
+@app.route('/login', methods=['POST'])
 def login_post():
     email = request.form['email']
     password = request.form['password']
@@ -59,12 +59,12 @@ def login_post():
     return redirect(url_for('buy'))
 
 
-@application.route('/register')
+@app.route('/register')
 def register_get():
     return render_template('SignUp.html')
 
 
-@application.route('/register', methods=['POST'])
+@app.route('/register', methods=['POST'])
 def register_user():
     email = request.form['email']
     password = request.form['password']
@@ -89,7 +89,7 @@ def register_user():
 #     return render_template("SignUp.html")
 
 
-@application.route('/welcome/buy/search', methods=['POST'])
+@app.route('/welcome/buy/search', methods=['POST'])
 def search_books():
     search_keyword = request.form['search-keyword']
     result = []
@@ -110,7 +110,7 @@ def search_books():
                            cartbook=cartbook1, email=email)
 
 
-@application.route('/welcome/buy')
+@app.route('/welcome/buy')
 def buy():
     books = Users.get_books()
     email = session['email']
@@ -128,7 +128,7 @@ def buy():
                            cartbook=cartbook, email=email)
 
 
-@application.route('/welcome/filter', methods=['POST'])
+@app.route('/welcome/filter', methods=['POST'])
 def buy_filter():
     book_type = request.form.getlist('type[]')
     genre = request.form.getlist('genre[]')
@@ -149,7 +149,7 @@ def buy_filter():
                            genre=genre, cartbook=cartbook1, email=email)
 
 
-@application.route('/welcome/buy/<string:b_id>')
+@app.route('/welcome/buy/<string:b_id>')
 def book_specific(b_id):
     book = Books.find_book(b_id)
     email = session['email']
@@ -169,7 +169,7 @@ def book_specific(b_id):
     return render_template("Book-Detail-Page.html", book=book, flag=flag, reviewflag=reviewflag, email=email)
 
 
-@application.route('/welcome/buy/<string:b_id>/review', methods=['POST'])
+@app.route('/welcome/buy/<string:b_id>/review', methods=['POST'])
 def add_book_review(b_id):
     comment = request.form['rating-input-class']
     star = request.form['star']
@@ -178,21 +178,21 @@ def add_book_review(b_id):
     return redirect(f'/welcome/buy/{b_id}')
 
 
-@application.route('/welcome/buy/main/<string:b_id>')
+@app.route('/welcome/buy/main/<string:b_id>')
 def add_to_cart(b_id):
     email = session['email']
     Users.add_book_to_cart(b_id, email)
     return redirect(url_for('buy'))
 
 
-@application.route('/welcome/buy/<string:b_id>/add-to-cart')
+@app.route('/welcome/buy/<string:b_id>/add-to-cart')
 def add_to_cart_book_specific(b_id):
     email = session['email']
     Users.add_book_to_cart(b_id, email)
     return redirect(f'/welcome/buy/{b_id}')
 
 
-@application.route('/welcome/sell', methods=['POST'])
+@app.route('/welcome/sell', methods=['POST'])
 def upload_book():
     title = request.form['book-title']
     author = request.form['book-author']
@@ -218,7 +218,7 @@ def upload_book():
         return redirect(url_for('login'))
 
 
-@application.route('/welcome/forum')
+@app.route('/welcome/forum')
 def forum():
     posts= Blogs.all_posts()
     total_posts = Database.find_length(collection='forum')
@@ -229,7 +229,7 @@ def forum():
     return render_template('Forum-Main-Page.html', posts = posts, count=count1, email=email)
 
 
-@application.route('/welcome/forum', methods=['POST'])
+@app.route('/welcome/forum', methods=['POST'])
 def new_post():
     email = session['email']
     title = request.form['blog-title']
@@ -239,7 +239,7 @@ def new_post():
     return redirect('/welcome/forum')
 
 
-@application.route('/welcome/forum/<string:blog_id>')
+@app.route('/welcome/forum/<string:blog_id>')
 def post_specific(blog_id):
     email= session['email']
     comments= None
@@ -252,7 +252,7 @@ def post_specific(blog_id):
     return render_template('Blog-Specific-Page.html', post=post, comments=comments, total_comments=total_comments, email=email)
 
 
-@application.route('/welcome/forum/<string:blog_id>/comment', methods=['POST'])
+@app.route('/welcome/forum/<string:blog_id>/comment', methods=['POST'])
 def post_specific_comment(blog_id):
     email= session['email']
     user= Users.get_by_email(f'u_email= \'{email}\'')
@@ -262,13 +262,13 @@ def post_specific_comment(blog_id):
     return redirect(f'/welcome/forum/{blog_id}')
 
 
-@application.route('/welcome/sell')
+@app.route('/welcome/sell')
 def sell():
     email= session['email']
     return render_template('Sell-Section.html', email=email)
 
 
-@application.route('/welcome/sell/booklist')
+@app.route('/welcome/sell/booklist')
 def booklist():
     email = session['email']
     if email:
@@ -283,7 +283,7 @@ def booklist():
         return render_template(url_for('login'))
 
 
-@application.route('/users/<string:type>/my-account')
+@app.route('/users/<string:type>/my-account')
 def account(type):
     if session['email']:
         email = session['email']
@@ -292,7 +292,7 @@ def account(type):
     else:
         return render_template(url_for('login'))
 
-@application.route('/users/buy/order-history')
+@app.route('/users/buy/order-history')
 def order_history():
     if session['email']:
         email= session['email']
@@ -317,7 +317,7 @@ def order_history():
         return render_template(url_for('login'))
 
 
-@application.route('/users/buy/my-cart')
+@app.route('/users/buy/my-cart')
 def cart():
     if session['email']:
         email = session['email']
@@ -333,7 +333,7 @@ def cart():
         return render_template(url_for('login'))
 
 
-@application.route('/users/<string:type>/my-account', methods=['POST'])
+@app.route('/users/<string:type>/my-account', methods=['POST'])
 def account_update(type):
     if session['email']:
         name = request.form['name']
@@ -349,7 +349,7 @@ def account_update(type):
         return render_template(url_for('login'))
 
 
-@application.route('/users/<string:type>/my-account/update-address', methods=['POST'])
+@app.route('/users/<string:type>/my-account/update-address', methods=['POST'])
 def update_address(type):
     if session['email']:
         street = request.form['street']
@@ -368,7 +368,7 @@ def update_address(type):
         return render_template(url_for('login'))
 
 
-@application.route('/users/<string:type>/my-account/change-password', methods=['POST'])
+@app.route('/users/<string:type>/my-account/change-password', methods=['POST'])
 def change_pwd(type):
     if session['email']:
         email= session['email']
@@ -385,7 +385,7 @@ def change_pwd(type):
         return render_template(url_for('login'))
 
 
-@application.route('/users/buy/my-cart/update-address', methods=['POST'])
+@app.route('/users/buy/my-cart/update-address', methods=['POST'])
 def update_address_via_my_cart():
     if session['email']:
         street = request.form['street']
@@ -401,7 +401,7 @@ def update_address_via_my_cart():
         return render_template(url_for('login'))
 
 
-@application.route('/users/buy/my-cart/add-book/<string:b_id>')
+@app.route('/users/buy/my-cart/add-book/<string:b_id>')
 def add_same_book_in_cart(b_id):
     if session['email']:
         email = session['email']
@@ -411,7 +411,7 @@ def add_same_book_in_cart(b_id):
         return render_template(url_for('login'))
 
 
-@application.route('/users/buy/my-cart/delete-book/<string:b_id>')
+@app.route('/users/buy/my-cart/delete-book/<string:b_id>')
 def delete_same_book_in_cart(b_id):
     if session['email']:
         email = session['email']
@@ -421,14 +421,14 @@ def delete_same_book_in_cart(b_id):
         return render_template(url_for('login'))
 
 
-@application.route('/users/logout')
+@app.route('/users/logout')
 def logout():
     session['email'] = None
     flash('Successfully logged out!!', category='success')
     return redirect('/')
 
 
-@application.route('/users/buy/pay', methods=['GET', 'POST'])
+@app.route('/users/buy/pay', methods=['GET', 'POST'])
 def pay():
     if session['email']:
         email = session['email']
@@ -447,7 +447,7 @@ def pay():
     else:
         return render_template(url_for('login'))
 
-@application.route('/users/buy/pay/success', methods=['GET', 'POST'])
+@app.route('/users/buy/pay/success', methods=['GET', 'POST'])
 def success():
     if session['email']:
         order_id= session['order_id']
@@ -466,12 +466,12 @@ def success():
         return render_template(url_for('login'))
 
 
-@application.route('/test', methods=['POST'])
+@app.route('/test', methods=['POST'])
 def test():
     Database.update(collection='users', data="u_address = 'check'", query="u_id = '32403'" )
     return '', 204
 
 
 if __name__ == '__main__':
-    application.debug= True
-    application.run(host="0.0.0.0",port=80)
+    app.debug= True
+    app.run(host="0.0.0.0", port=80)
